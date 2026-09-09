@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jungle Connect-the-Dots Game 🌿</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">🌿 Jungle Connect-the-Dots 🐆</h1>
+                <div class="header-controls">
+                    <button class="btn btn-settings" onclick="openSettings()">⚙️ Settings</button>
+                    <button class="btn btn-sound" onclick="toggleSound()">🔊 Sound</button>
+                    <select class="language-select" onchange="changeLanguage(this.value)">
+                        <option value="en">English</option>
+                        <option value="ar">العربية</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <!-- Game Mode Selection -->
+        <div id="modeSelection" class="mode-selection">
+            <h2>Select Game Mode</h2>
+            <div class="mode-buttons">
+                <button class="btn btn-mode" onclick="startGame('single')">
+                    <span class="mode-icon">👤</span>
+                    <span class="mode-text">Single Player</span>
+                </button>
+                <button class="btn btn-mode" onclick="startGame('team')">
+                    <span class="mode-icon">👥</span>
+                    <span class="mode-text">Team Mode</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Board -->
+        <div id="gameBoard" class="game-board hidden">
+            <div class="game-header">
+                <div class="score-container">
+                    <div class="score-item">
+                        <span class="score-label" id="player1Label">Player 1:</span>
+                        <span class="score-value" id="score1">0</span>
+                    </div>
+                    <div class="score-item" id="player2ScoreDiv" class="hidden">
+                        <span class="score-label" id="player2Label">Player 2:</span>
+                        <span class="score-value" id="score2">0</span>
+                    </div>
+                </div>
+                <div class="question-info">
+                    <span id="questionNumber">Question 1/10</span>
+                </div>
+                <button class="btn btn-small" onclick="goBackToMode()">← Back</button>
+            </div>
+
+            <!-- Question and Image Clue -->
+            <div class="question-section">
+                <div class="question-text" id="questionText"></div>
+                <div class="image-clue" id="imageClue"></div>
+            </div>
+
+            <!-- Canvas for Drawing Lines -->
+            <canvas id="drawingCanvas" class="drawing-canvas"></canvas>
+
+            <!-- Draggable Elements Container -->
+            <div class="draggables-container" id="draggablesContainer"></div>
+
+            <!-- Answer Display -->
+            <div class="answer-display">
+                <div class="answer-label">Your Answer:</div>
+                <div class="answer-boxes" id="answerBoxes"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="checkAnswer()">Check Answer ✓</button>
+                <button class="btn btn-secondary" onclick="resetQuestion()">Reset</button>
+                <button class="btn btn-secondary" onclick="skipQuestion()">Skip</button>
+            </div>
+
+            <!-- Feedback -->
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="results-screen hidden">
+            <div class="results-content">
+                <h2>🎉 Game Complete!</h2>
+                <div class="results-stats">
+                    <div class="stat-item">
+                        <span class="stat-label" id="finalPlayer1Label">Player 1</span>
+                        <span class="stat-value" id="finalScore1">0</span>
+                    </div>
+                    <div class="stat-item" id="finalPlayer2Div" class="hidden">
+                        <span class="stat-label" id="finalPlayer2Label">Player 2</span>
+                        <span class="stat-value" id="finalScore2">0</span>
+                    </div>
+                </div>
+                <div class="results-message" id="resultsMessage"></div>
+                <div class="results-buttons">
+                    <button class="btn btn-primary" onclick="playAgain()">Play Again 🔄</button>
+                    <button class="btn btn-secondary" onclick="goBackToMode()">Main Menu 🏠</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="settings-panel hidden">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2>⚙️ Teacher Settings</h2>
+                <button class="close-btn" onclick="closeSettings()">&times;</button>
+            </div>
+
+            <div class="settings-section">
+                <h3>Question Management</h3>
+                <div class="settings-buttons">
+                    <button class="btn btn-secondary" onclick="exportQuestions()">📥 Export Questions (JSON)</button>
+                    <button class="btn btn-secondary" onclick="importQuestions()">📤 Import Questions (JSON)</button>
+                </div>
+                <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileImport(event)">
+            </div>
+
+            <div class="settings-section">
+                <h3>Game Settings</h3>
+                <label class="settings-label">
+                    <input type="checkbox" id="bgMusicToggle" onchange="toggleBackgroundMusic()">
+                    Background Music
+                </label>
+                <label class="settings-label">
+                    <input type="checkbox" id="sfxToggle" checked onchange="toggleSFX()">
+                    Sound Effects
+                </label>
+                <label class="settings-label">
+                    Questions per Game:
+                    <input type="number" id="questionsPerGame" value="10" min="1" max="50">
+                </label>
+            </div>
+
+            <div class="settings-section">
+                <h3>Edit/Add Questions</h3>
+                <div class="question-editor">
+                    <input type="text" id="editorQuestion" placeholder="Question/Clue" class="editor-input">
+                    <input type="text" id="editorAnswer" placeholder="Correct Answer" class="editor-input">
+                    <input type="text" id="editorImageUrl" placeholder="Image URL (optional)" class="editor-input">
+                    <select id="editorActivityType" class="editor-input">
+                        <option value="spelling">Spelling</option>
+                        <option value="sentence">Sentence Formation</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="addCustomQuestion()">Add Question</button>
+                </div>
+                <div class="custom-questions-list" id="customQuestionsList"></div>
+            </div>
+
+            <button class="btn btn-primary" onclick="closeSettings()">Close Settings</button>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="bgMusic" loop>
+        <source src="audio/jungle-ambient.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="correctSound">
+        <source src="audio/correct.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="incorrectSound">
+        <source src="audio/incorrect.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="clickSound">
+        <source src="audio/click.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="audio-generator.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
